@@ -46,17 +46,6 @@ let server = app.listen(PORT, () => {
     let host = server.address().address;
     let port = server.address().port;
     console.log("[API] [Start] Listening at http://%s:%s", host, port);
-
-    // for (let i = 0; i < 10; i++) {
-    //     //receive();}
-
-    //     serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
-    //         if (!error) {
-    //             // Message received and deleted
-    //             processMessage(receivedMessage);
-    //         }
-    //     });
-    // }
 });
 
 let processMessage = (message) => {
@@ -86,11 +75,11 @@ let processMessage = (message) => {
         });
     }
     console.log(messages.get(correlationid));
-    // if (isAllDataReceived(messages.get(correlationid))) {
-    //     let dataCollection = messages.get(correlationid);
-    //     let aggregatedMessage = aggregate(dataCollection);
-    //     sendMessageToEmailService(aggregatedMessage);
-    // }
+    if (isAllDataReceived(messages.get(correlationid))) {
+        let dataCollection = messages.get(correlationid);
+        let aggregatedMessage = aggregate(dataCollection);
+        sendMessageToEmailService(aggregatedMessage);
+    }
 };
 
 let receive = () => {
@@ -137,14 +126,17 @@ let isAllDataReceived = (dataCollection) => {
         sort(receivedChunks);
         sortChunks(dataCollection.chunks);
         let lastIndex = receivedChunks[receivedChunks.length - 1];
+        console.log(lastIndex);
         return lastIndex == receivedChunks.length - 1;
+    } else {
+        return false;
     }
 };
 
 let sort = (array) => {
     for (let i = 0; i < array.length; i++) {
         for (let j = 0; j < array.length; j++) {
-            if (array[i] > array[j]) {
+            if (array[i] < array[j]) {
                 let tmp = array[i];
                 array[i] = array[j];
                 array[j] = tmp;
@@ -156,7 +148,7 @@ let sort = (array) => {
 let sortChunks = (chunks) => {
     for (let i = 0; i < chunks.length; i++) {
         for (let j = 0; j < chunks.length; j++) {
-            if (chunks[i].chunknr > chunks[j].chunknr) {
+            if (chunks[i].chunknr < chunks[j].chunknr) {
                 let tmp = chunks[i];
                 chunks[i] = chunks[j];
                 chunks[j] = tmp;
@@ -164,5 +156,26 @@ let sortChunks = (chunks) => {
         }
     }
 };
+
+// let testi = () => {
+//     console.log('test');
+//     let test = {
+//         correlationid: '1234',
+//         email: 'sandro.speth@web.de',
+//         lastChunkReceived: true,
+//         receivedChunks: [0,2,1,3],
+//         chunks: [{ chunknr: 0, body: 'Hallo\n' },
+//         { chunknr: 2, body: 'geht es\n' },
+//         { chunknr: 1, body: 'wie\n' },
+//         { chunknr: 3, body: 'dir\n' }]
+//     };
+//     if (isAllDataReceived(test)) {
+//         console.log(aggregate(test));
+//         // console.log(true);
+//     } else {
+//         console.log('wrong');
+//     }
+// };
+// testi();
 
 receive();
