@@ -45,14 +45,17 @@ let server = app.listen(PORT, () => {
     let host = server.address().address;
     let port = server.address().port;
     console.log("[API] [Start] Listening at http://%s:%s", host, port);
-    for(let i = 0; i < 10; i++) {receive();}
 
-    // serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
-    //     if (!error) {
-    //         // Message received and deleted
-    //         console.log(receivedMessage);
-    //     }
-    // });
+    // for (let i = 0; i < 10; i++) {
+    //     //receive();}
+
+    //     serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
+    //         if (!error) {
+    //             // Message received and deleted
+    //             processMessage(receivedMessage);
+    //         }
+    //     });
+    // }
 });
 
 let processMessage = (message) => {
@@ -62,13 +65,12 @@ let processMessage = (message) => {
         let dataCollection = {
             correlationid: correlationid,
             email: message.customProperties.email,
-            lastChunkReceived: message.customProperties.lastOne,
+            lastChunkReceived: message.customProperties.lastone,
             receivedChunks: [message.customProperties.chunknr],
             chunks: [
                 {
                     chunknr: message.customProperties.chunknr,
-                    original: message.body.original,
-                    findings: message.body.findings
+                    body: message.body
                 }
             ]
         };
@@ -79,28 +81,32 @@ let processMessage = (message) => {
         dataCollection.lastChunkReceived = dataCollection.lastChunkReceived ? true : message.customProperties.lastOne;
         dataCollection.chunks.push({
             chunknr: message.customProperties.chunknr,
-            original: message.body.original,
-            findings: message.body.findings
+            body: message.body
         });
     }
     console.log(messages.get(correlationid));
-    if (isAllDataReceived(messages.get(correlationid))) {
-        let dataCollection = messages.get(correlationid);
-        let aggregatedMessage = aggregate(dataCollection);
-        sendMessageToEmailService(aggregatedMessage);
-    }
-
-    receive();
+    // if (isAllDataReceived(messages.get(correlationid))) {
+    //     let dataCollection = messages.get(correlationid);
+    //     let aggregatedMessage = aggregate(dataCollection);
+    //     sendMessageToEmailService(aggregatedMessage);
+    // }
 };
 
 let receive = () => {
     serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
         if (!error) {
             // Message received and deleted
-            // console.log(receivedMessage);
-            processMessage(receivedMessage);
+            if (receivedMessage.customProperties.findings) {
+                processMessage(receivedMessage);
+            }
+
+        } else {
+            console.log('[Log] Error receiving messages');
         }
-    });   
+        setTimeout(function () { 
+            receive(); 
+        }, 1000);
+    });
 }
 
 let sendMessageToEmailService = (aggregatedMessage) => {
@@ -136,12 +142,10 @@ let aggregate = (dataCollection) => {
     };
     let chunks = dataCollection.chunks;
     chunks.forEach((chunk) => {
-        let sentenceString = 'In the original sentence:\n' +
-            chunk.original + '\n the following tokens have been found:\n' + chunk.findings + '\n\n';
-            console.log(sentenceString);
+        aggregatedMessage.body += chunk.body;
     });
 
-    return {}; // TODO
+    return aggregatedMessage;
 };
 
 let isAllDataReceived = (dataCollection) => {
@@ -177,3 +181,5 @@ let sortChunks = (chunks) => {
         }
     }
 };
+
+receive();
