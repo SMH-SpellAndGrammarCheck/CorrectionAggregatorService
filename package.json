@@ -1,0 +1,24 @@
+{
+  "name": "correctionaggregatorservice",
+  "version": "1.0.0",
+  "description": "Aggregator service for correction text messages.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService.git"
+  },
+  "keywords": [
+    "Azure",
+    "Message",
+    "Aggregator"
+  ],
+  "author": "SMH - Sandro Speth, Matthias Hermann, Heiko Geppert",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService/issues"
+  },
+  "homepage": "https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService#readme"
+}
