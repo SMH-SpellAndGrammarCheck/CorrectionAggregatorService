@@ -7,6 +7,7 @@
 const express = require('express');
 let app = express();
 const http = require('http');
+var querystring = require('querystring');
 const fs = require('fs');
 const path = require('path');
 const uuidv4 = require('uuid/v4');
@@ -20,6 +21,8 @@ let messages = new HashMap();
 const queueData = JSON.parse(fs.readFileSync(__dirname + '/queue.json', 'utf8', (err) => {
     console.log('[Error] Error while reading queue data');
 }));
+
+const emailServiceConnectionData = 'localhost';
 
 const serviceBusService = azure.createServiceBusService(queueData.connectionString);
 serviceBusService.createQueueIfNotExists(queueData.queuename, function (error) {
@@ -47,7 +50,7 @@ let receive = () => {
             // console.log(receivedMessage.body);
         }
     });
-    
+
     let correlationid = message.customProperties.correlationid;
     if (!messages.has(correlationid)) {
         let dataCollection = {
@@ -86,6 +89,29 @@ let receive = () => {
 
 let sendMessageToEmailService = (aggregatedMessage) => {
     // TODO
+    var post_data = 'Test';
+
+    var post_options = {
+        host: emailServiceConnectionData,
+        port: '8080',
+        path: '/',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain',
+            'email': aggregatedMessage.email
+        }
+    };
+
+    // Set up the request
+    var post_req = http.request(post_options, function (res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('[Log] Response: ' + chunk);
+        });
+    });
+
+    // post the data
+    post_req.write(post_data);
 };
 
 let aggregate = (dataCollection) => {
@@ -109,6 +135,6 @@ let sort = (array) => {
                 array[i] = array[j];
                 array[j] = array[i];
             }
-        } 
+        }
     }
 };
