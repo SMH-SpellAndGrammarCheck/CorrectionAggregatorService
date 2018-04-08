@@ -19,7 +19,7 @@ let messages = new HashMap();
 
 // Read queue data and create queue if not already exists
 let queueData = {}
-if ( process.env.QUEUE_NAME === undefined || process.env.CONNECTION_STRING === undefined) {
+if (process.env.QUEUE_NAME === undefined || process.env.CONNECTION_STRING === undefined) {
     queueData = JSON.parse(fs.readFileSync(__dirname + '/queue.json', 'utf8', (err) => {
         console.log('[Error] Error while reading queue data');
     }));
@@ -45,20 +45,18 @@ let server = app.listen(PORT, () => {
     let host = server.address().address;
     let port = server.address().port;
     console.log("[API] [Start] Listening at http://%s:%s", host, port);
+    for(let i = 0; i < 10; i++) {receive();}
+
+    // serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
+    //     if (!error) {
+    //         // Message received and deleted
+    //         console.log(receivedMessage);
+    //     }
+    // });
 });
 
-
-let receive = () => {
-    let message = {};
-    serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
-        if (!error) {
-            // Message received and deleted
-            message = receivedMessage;
-            // spellCheck(receivedMessage);
-            // console.log(receivedMessage.body);
-        }
-    });
-
+let processMessage = (message) => {
+    // console.log(message);
     let correlationid = message.customProperties.correlationid;
     if (!messages.has(correlationid)) {
         let dataCollection = {
@@ -85,7 +83,7 @@ let receive = () => {
             findings: message.body.findings
         });
     }
-
+    console.log(messages.get(correlationid));
     if (isAllDataReceived(messages.get(correlationid))) {
         let dataCollection = messages.get(correlationid);
         let aggregatedMessage = aggregate(dataCollection);
@@ -93,11 +91,20 @@ let receive = () => {
     }
 
     receive();
+};
+
+let receive = () => {
+    serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
+        if (!error) {
+            // Message received and deleted
+            // console.log(receivedMessage);
+            processMessage(receivedMessage);
+        }
+    });   
 }
 
 let sendMessageToEmailService = (aggregatedMessage) => {
-    // TODO
-    var post_data = 'Test';
+    var post_data = aggregatedMessage.body;
 
     var post_options = {
         host: emailServiceConnectionData,
@@ -123,6 +130,17 @@ let sendMessageToEmailService = (aggregatedMessage) => {
 };
 
 let aggregate = (dataCollection) => {
+    let aggregatedMessage = {
+        email: dataCollection.email,
+        body: ""
+    };
+    let chunks = dataCollection.chunks;
+    chunks.forEach((chunk) => {
+        let sentenceString = 'In the original sentence:\n' +
+            chunk.original + '\n the following tokens have been found:\n' + chunk.findings + '\n\n';
+            console.log(sentenceString);
+    });
+
     return {}; // TODO
 };
 
@@ -130,6 +148,7 @@ let isAllDataReceived = (dataCollection) => {
     if (dataCollection.lastChunkReceived) {
         let receivedChunks = dataCollection.receivedChunks;
         sort(receivedChunks);
+        sortChunks(dataCollection.chunks);
         let lastIndex = receivedChunks[receivedChunks.length - 1];
         return lastIndex == receivedChunks.length - 1;
     }
@@ -138,10 +157,22 @@ let isAllDataReceived = (dataCollection) => {
 let sort = (array) => {
     for (let i = 0; i < array.length; i++) {
         for (let j = 0; j < array.length; j++) {
-            if (array[i] < array[j]) {
+            if (array[i] > array[j]) {
                 let tmp = array[i];
                 array[i] = array[j];
-                array[j] = array[i];
+                array[j] = tmp;
+            }
+        }
+    }
+};
+
+let sortChunks = (chunks) => {
+    for (let i = 0; i < chunks.length; i++) {
+        for (let j = 0; j < chunks.length; j++) {
+            if (chunks[i].chunknr > chunks[j].chunknr) {
+                let tmp = chunks[i];
+                chunks[i] = chunks[j];
+                chunks[j] = tmp;
             }
         }
     }
