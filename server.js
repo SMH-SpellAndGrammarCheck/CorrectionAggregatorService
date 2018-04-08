@@ -30,7 +30,7 @@ if ( process.env.QUEUE_NAME === undefined || process.env.CONNECTION_STRING === u
     }
 }
 
-const emailServiceConnectionData = 'localhost';
+const emailServiceConnectionData = process.env.MAILD_HOSTNAME || 'localhost';
 
 const serviceBusService = azure.createServiceBusService(queueData.connectionString);
 serviceBusService.createQueueIfNotExists(queueData.queuename, function (error) {
