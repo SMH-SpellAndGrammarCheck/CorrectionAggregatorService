@@ -60,6 +60,7 @@ let processMessage = (message) => {
             chunks: [
                 {
                     chunknr: message.customProperties.chunknr,
+                    findings: message.customProperties.findings,
                     body: message.body
                 }
             ]
@@ -71,6 +72,7 @@ let processMessage = (message) => {
         dataCollection.lastChunkReceived = dataCollection.lastChunkReceived ? true : message.customProperties.lastOne;
         dataCollection.chunks.push({
             chunknr: message.customProperties.chunknr,
+            findings: message.customProperties.findings,
             body: message.body
         });
     }
@@ -86,9 +88,9 @@ let receive = () => {
     serviceBusService.receiveQueueMessage(queueData.queuename, function (error, receivedMessage) {
         if (!error) {
             // Message received and deleted
-            if (receivedMessage.customProperties.findings) {
-                processMessage(receivedMessage);
-            }
+            // if (receivedMessage.customProperties.findings) {
+            processMessage(receivedMessage);
+            // }
 
         } else {
             console.log('[Log] Error receiving messages');
@@ -114,7 +116,9 @@ let aggregate = (dataCollection) => {
     };
     let chunks = dataCollection.chunks;
     chunks.forEach((chunk) => {
-        aggregatedMessage.body += chunk.body;
+        if (chunk.findings) {
+            aggregatedMessage.body += chunk.body;
+        }
     });
 
     return aggregatedMessage;
@@ -157,25 +161,24 @@ let sortChunks = (chunks) => {
     }
 };
 
-// let testi = () => {
-//     console.log('test');
-//     let test = {
-//         correlationid: '1234',
-//         email: 'sandro.speth@web.de',
-//         lastChunkReceived: true,
-//         receivedChunks: [0,2,1,3],
-//         chunks: [{ chunknr: 0, body: 'Hallo\n' },
-//         { chunknr: 2, body: 'geht es\n' },
-//         { chunknr: 1, body: 'wie\n' },
-//         { chunknr: 3, body: 'dir\n' }]
-//     };
-//     if (isAllDataReceived(test)) {
-//         console.log(aggregate(test));
-//         // console.log(true);
-//     } else {
-//         console.log('wrong');
-//     }
-// };
-// testi();
+let testi = () => {
+    console.log('test');
+    let test = {
+        correlationid: uuidv4(),
+        email: 'sandro.speth@web.de',
+        lastChunkReceived: true,
+        receivedChunks: [0, 2, 1],
+        chunks: [{ chunknr: 0, findings: false, body: 'In the orinal sentence:\nThis is an example sentence\n the following tokens have been found:\n\n' },
+        { chunknr: 2, findings: true, body: 'In the orinal sentence:\nIt has sme mispellings\n the following tokens have been found:\nsme -> some\n\n' },
+        { chunknr: 1, findings: false, body: 'In the orinal sentence:\nBut those are for a reason\n the following tokens have been found:\n\n' }]
+    };
+    if (isAllDataReceived(test)) {
+        console.log(aggregate(test));
+        // console.log(true);
+    } else {
+        console.log('wrong');
+    }
+};
+testi();
 
 receive();
