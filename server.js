@@ -13,6 +13,7 @@ const path = require('path');
 const uuidv4 = require('uuid/v4');
 const azure = require('azure');
 const HashMap = require('hashmap');
+const child_process = require('child_process');
 const PORT = process.env.PORT || 1338;
 
 let messages = new HashMap();
@@ -103,36 +104,18 @@ let receive = () => {
         } else {
             console.log('[Log] Error receiving messages');
         }
-        setTimeout(function () { 
-            receive(); 
+        setTimeout(function () {
+            receive();
         }, 1000);
     });
 }
 
 let sendMessageToEmailService = (aggregatedMessage) => {
-    var post_data = aggregatedMessage.body;
-
-    var post_options = {
-        host: emailServiceConnectionData,
-        port: '8080',
-        path: '/',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'text/plain',
-            'email': aggregatedMessage.email
-        }
-    };
-
-    // Set up the request
-    var post_req = http.request(post_options, function (res) {
-        res.setEncoding('utf8');
-        res.on('data', function (chunk) {
-            console.log('[Log] Response: ' + chunk);
-        });
-    });
-
-    // post the data
-    post_req.write(post_data);
+    child_process.exec("curl -d \"" + aggregatedMessage.body + "\" -H \"email: " + aggregatedMessage.email + "\" " + emailServiceConnectionData + ":8080\n",
+        undefined,
+        (error, stdout, stderr) => {
+            console.log("Error: %o", error)
+        })
 };
 
 let aggregate = (dataCollection) => {
