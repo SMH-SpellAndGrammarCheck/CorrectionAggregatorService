@@ -13,7 +13,7 @@ const path = require('path');
 const uuidv4 = require('uuid/v4');
 const azure = require('azure');
 const HashMap = require('hashmap');
-const PORT = process.env.PORT || 1337;
+const PORT = process.env.PORT || 1338;
 
 let messages = new HashMap();
 
