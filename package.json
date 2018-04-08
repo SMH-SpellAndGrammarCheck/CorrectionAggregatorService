@@ -20,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService/issues"
   },
-  "homepage": "https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService#readme"
+  "homepage": "https://github.com/SMH-SpellAndGrammarCheck/CorrectionAggregatorService#readme",
+  "dependencies": {
+    "azure": "^2.2.1-preview",
+    "express": "^4.16.3",
+    "hashmap": "^2.3.0",
+    "uuid": "^3.2.1"
+  }
 }
