@@ -18,9 +18,17 @@ const PORT = process.env.PORT || 1338;
 let messages = new HashMap();
 
 // Read queue data and create queue if not already exists
-const queueData = JSON.parse(fs.readFileSync(__dirname + '/queue.json', 'utf8', (err) => {
-    console.log('[Error] Error while reading queue data');
-}));
+let queueData = {}
+if ( process.env.QUEUE_NAME === undefined || process.env.CONNECTION_STRING === undefined) {
+    queueData = JSON.parse(fs.readFileSync(__dirname + '/queue.json', 'utf8', (err) => {
+        console.log('[Error] Error while reading queue data');
+    }));
+} else {
+    queueData = {
+        "queuename": process.env.QUEUE_NAME,
+        "connectionString": process.env.CONNECTION_STRING
+    }
+}
 
 const emailServiceConnectionData = 'localhost';
 
