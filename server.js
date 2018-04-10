@@ -93,7 +93,7 @@ let receive = () => {
             // }
 
         } else {
-            console.log('[Log] Error receiving messages');
+            console.log('[Log] Error receiving messages: ' + error);
         }
         setTimeout(function () {
             receive();
@@ -161,24 +161,24 @@ let sortChunks = (chunks) => {
     }
 };
 
-let testi = () => {
-    console.log('test');
-    let test = {
-        correlationid: uuidv4(),
-        email: 'sandro.speth@web.de',
-        lastChunkReceived: true,
-        receivedChunks: [0, 2, 1],
-        chunks: [{ chunknr: 0, findings: false, body: 'In the orinal sentence:\nThis is an example sentence\n the following tokens have been found:\n\n' },
-        { chunknr: 2, findings: true, body: 'In the orinal sentence:\nIt has sme mispellings\n the following tokens have been found:\nsme -> some\n\n' },
-        { chunknr: 1, findings: false, body: 'In the orinal sentence:\nBut those are for a reason\n the following tokens have been found:\n\n' }]
-    };
-    if (isAllDataReceived(test)) {
-        console.log(aggregate(test));
-        // console.log(true);
-    } else {
-        console.log('wrong');
-    }
-};
-testi();
+// let testi = () => {
+//     console.log('test');
+//     let test = {
+//         correlationid: uuidv4(),
+//         email: 'sandro.speth@web.de',
+//         lastChunkReceived: true,
+//         receivedChunks: [0, 2, 1],
+//         chunks: [{ chunknr: 0, findings: false, body: 'In the orinal sentence:\nThis is an example sentence\n the following tokens have been found:\n\n' },
+//         { chunknr: 2, findings: true, body: 'In the orinal sentence:\nIt has sme mispellings\n the following tokens have been found:\nsme -> some\n\n' },
+//         { chunknr: 1, findings: false, body: 'In the orinal sentence:\nBut those are for a reason\n the following tokens have been found:\n\n' }]
+//     };
+//     if (isAllDataReceived(test)) {
+//         console.log(aggregate(test));
+//         // console.log(true);
+//     } else {
+//         console.log('wrong');
+//     }
+// };
+// testi();
 
 receive();
